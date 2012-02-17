@@ -15,41 +15,43 @@
  */
 package net.thewaffleshop.flapjack;
 
-import junit.framework.Assert;
-import net.thewaffleshop.flapjack.annotations.Getter;
+import net.thewaffleshop.flapjack.annotations.Setter;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests on @Getter annotation
+ * Unit tests for @Setter annotation
  *
  * @author Robert Hollencamp
  */
-public class GetterTest
+public class SetterTest
 {
-	@Getter
-	private final String instanceVar = "instance";
+	@Setter
+	private String instanceVar;
 
-	@Getter
-	private static final String staticVar = "static";
+	@Setter
+	private String staticVar;
 
-	@Getter
-	private final boolean bool = true;
+	@Setter
+	private boolean booleanVar;
 
 	/**
-	 * Test instance field getter
+	 * Test setter on an instance field
 	 */
 	@Test
-	public void testInstanceGetter()
+	public void testInstanceSetter()
 	{
-		Assert.assertEquals("instance", this.getInstanceVar());
+		this.setInstanceVar("instance");
+		Assert.assertEquals("instance", instanceVar);
 	}
 
 	/**
-	 * boolean fields get a special named getter; make sure a boolean field gets special name
+	 * Boolean fields do not get a special name on the setter; make sure they get the regular name
 	 */
 	@Test
 	public void testBoolean()
 	{
-		Assert.assertEquals(true, this.isBool());
+		this.setBooleanVar(true);
+		Assert.assertEquals(true, booleanVar);
 	}
 }

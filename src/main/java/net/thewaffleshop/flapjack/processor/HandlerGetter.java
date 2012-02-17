@@ -1,6 +1,21 @@
+/*
+ *   Copyright 2012 Robert Hollencamp
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 package net.thewaffleshop.flapjack.processor;
 
-import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -10,14 +25,13 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 import net.thewaffleshop.flapjack.annotations.Getter;
 
 /**
  *
- * @author robert.hollencamp
+ * @author Robert Hollencamp
  */
 public class HandlerGetter extends Handler
 {
@@ -50,17 +64,17 @@ public class HandlerGetter extends Handler
 		final List<JCStatement> bodyStatements = List.<JCStatement>of(treeMaker.Return(createFieldAccessor(field, clazz)));
 		final JCBlock block = treeMaker.Block(0, bodyStatements);
 		final Name methodName = elements.getName(generateGetterName(field));
-		final JCExpression methodType = field.type != null ? treeMaker.Type(field.type) : field.vartype;
-		final JCModifiers modifiers = treeMaker.Modifiers(1);
+		final JCExpression returnType = field.vartype;
+		final JCModifiers modifiers = treeMaker.Modifiers(Flags.PUBLIC);
 		final JCMethodDecl methodDef = treeMaker.MethodDef(
 				modifiers,
 				methodName,
-				methodType,
+				returnType,
 				List.<JCTypeParameter>nil(), // generic parameters
 				List.<JCVariableDecl>nil(),  // parameters
 				List.<JCExpression>nil(),    // throws clauses
 				block,
-				null); // annotation method default value
+				null);                       // annotation method default value
 		clazz.defs = clazz.defs.append(methodDef);
 	}
 
