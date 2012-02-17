@@ -1,12 +1,14 @@
 package net.thewaffleshop.flapjack.processor;
 
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import net.thewaffleshop.flapjack.annotations.Setter;
 
 /**
  *
  * @author robert.hollencamp
  */
-public class HandlerSetter implements Handler
+public class HandlerSetter extends Handler
 {
 	@Override
 	public String getAnnotationClassName()
@@ -15,7 +17,7 @@ public class HandlerSetter implements Handler
 	}
 
 	@Override
-	public void handle()
+	public void handle(final JCVariableDecl field, final JCClassDecl clazz)
 	{
 		throw new UnsupportedOperationException("Not supported yet.");
 	}

@@ -3,12 +3,14 @@ package net.thewaffleshop.flapjack.processor;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import java.util.HashMap;
@@ -26,10 +28,10 @@ import javax.tools.JavaFileObject;
  *
  * @author robert.hollencamp
  */
-public class FooProcessor extends AbstractProcessor
+public class AnnotationProcessor extends AbstractProcessor
 {
 	private final HashMap<String, Handler> handlers = new HashMap<>();
-	
+
 	private JavacProcessingEnvironment javacProcessingEnv;
 	private Context context;
 	private Log log;
@@ -119,9 +121,16 @@ public class FooProcessor extends AbstractProcessor
 		for (TypeElement typeElement : annotations) {
 			final Symbol symbol = (Symbol) typeElement;
 			if (symbol.equals(annotation.type.tsym)) {
+				Handler handler = handlers.get(typeElement.getQualifiedName().toString());
+				handler.treeMaker = TreeMaker.instance(context);
+				handler.elements = JavacElements.instance(context);
+				handler.handle(variableDecl, classDecl);
+
+				/**
 				final JavaFileObject oldSource = log.useSource(compilationUnit.sourcefile);
 				log.error(annotation.pos(), "proc.messager", "Hello World!");
 				log.useSource(oldSource);
+				*/
 			}
 		}
 	}

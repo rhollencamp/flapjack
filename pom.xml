@@ -28,8 +28,8 @@
 						<configuration>
 							<compilerArgument>-proc:none</compilerArgument>
 							<includes>
-								<include>net/thewaffleshop/foo/annotations/**</include>
-								<include>net/thewaffleshop/foo/processor/Handler*</include>
+								<include>net/thewaffleshop/flapjack/annotations/**</include>
+								<include>net/thewaffleshop/flapjack/processor/Handler*</include>
 							</includes>
 						</configuration>
 					</execution>
@@ -43,9 +43,6 @@
 						</goals>
 						<configuration>
 							<compilerArgument>-proc:none</compilerArgument>
-							<includes>
-								<include>net/thewaffleshop/foo/**</include>
-							</includes>
 						</configuration>
 					</execution>
 				</executions>
