@@ -22,7 +22,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.tools.JavaFileObject;
 
 /**
  *
@@ -30,7 +29,7 @@ import javax.tools.JavaFileObject;
  */
 public class AnnotationProcessor extends AbstractProcessor
 {
-	private final HashMap<String, Handler> handlers = new HashMap<>();
+	private final HashMap<String, Handler> handlers = new HashMap<String, Handler>();
 
 	private JavacProcessingEnvironment javacProcessingEnv;
 	private Context context;
