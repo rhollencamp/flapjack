@@ -22,13 +22,18 @@ import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -138,15 +143,54 @@ public class AnnotationProcessor extends AbstractProcessor
 				Handler handler = handlers.get(typeElement.getQualifiedName().toString());
 				handler.treeMaker = TreeMaker.instance(context);
 				handler.elements = JavacElements.instance(context);
+				handler.arguments = parseArguments(annotation);
+				handler.annotation = annotation;
+				handler.compilationUnit = compilationUnit;
+				handler.log = log;
 				handler.handle(variableDecl, classDecl);
-
-				/**
-				final JavaFileObject oldSource = log.useSource(compilationUnit.sourcefile);
-				log.error(annotation.pos(), "proc.messager", "Hello World!");
-				log.useSource(oldSource);
-				*/
 			}
 		}
+	}
+
+	/**
+	 * Parse arguments for an annotation and return them in a map
+	 *
+	 * @param annotation
+	 * @return
+	 */
+	private HashMap<String, Object> parseArguments(final JCAnnotation annotation)
+	{
+		final HashMap<String, Object> ret = new HashMap<String, Object>();
+
+		for (final JCExpression expr : annotation.getArguments()) {
+			JCAssign assignExpr = (JCAssign) expr;
+
+			JCIdent lhs = (JCIdent) assignExpr.lhs;
+			final String key = lhs.getName().toString();
+			final Object value = getArgumentValue(assignExpr.rhs);
+
+			ret.put(key, value);
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Determine the value of an argument on an annotation
+	 *
+	 * @param expr
+	 * @return
+	 */
+	private Object getArgumentValue(final JCExpression expr)
+	{
+		if (expr instanceof JCLiteral) {
+			final JCLiteral lit = (JCLiteral)expr;
+			if (lit.getKind() == com.sun.source.tree.Tree.Kind.BOOLEAN_LITERAL) {
+				return ((Number)lit.value).intValue() != 0;
+			}
+		}
+
+		throw new RuntimeException("Unable to determine argument value for annotation");
 	}
 
 	/**

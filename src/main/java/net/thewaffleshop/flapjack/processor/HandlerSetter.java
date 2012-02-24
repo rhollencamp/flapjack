@@ -16,11 +16,18 @@
 package net.thewaffleshop.flapjack.processor;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
@@ -45,11 +52,6 @@ public class HandlerSetter extends Handler
 			return;
 		}
 
-		// method body
-		final JCAssign assign = treeMaker.Assign(createFieldAccessor(field, clazz), treeMaker.Ident(field));
-		final List<JCStatement> bodyStatements = List.<JCStatement>of(treeMaker.Exec(assign));
-		final JCTree.JCBlock block = treeMaker.Block(0, bodyStatements);
-
 		// parameters
 		JCVariableDecl param = treeMaker.VarDef(
 				treeMaker.Modifiers(Flags.FINAL, List.<JCAnnotation>nil()),
@@ -58,18 +60,62 @@ public class HandlerSetter extends Handler
 				null);
 
 		final Name methodName = elements.getName(generateSetterName(field));
-		final JCTree.JCExpression returnType = treeMaker.Type(getVoidType());
-		final JCTree.JCModifiers modifiers = treeMaker.Modifiers(Flags.PUBLIC);
-		final JCTree.JCMethodDecl methodDef = treeMaker.MethodDef(
+		final JCExpression returnType = treeMaker.Type(getVoidType());
+		final JCModifiers modifiers = treeMaker.Modifiers(Flags.PUBLIC);
+		final JCBlock body = generateBody(field, clazz);
+		final JCMethodDecl methodDef = treeMaker.MethodDef(
 				modifiers,
 				methodName,
 				returnType,
-				List.<JCTree.JCTypeParameter>nil(), // generic parameters
+				List.<JCTypeParameter>nil(),        // generic parameters
 				List.of(param),                     // parameters
-				List.<JCTree.JCExpression>nil(),    // throws clauses
-				block,
+				List.<JCExpression>nil(),           // throws clauses
+				body,
 				null);                              // annotation method default value
 		clazz.defs = clazz.defs.append(methodDef);
+	}
+
+	/**
+	 * Generate setter method body
+	 *
+	 * @param field
+	 * @param clazz
+	 * @return
+	 */
+	private JCBlock generateBody(final JCVariableDecl field, final JCClassDecl clazz) {
+		// method body
+		final JCAssign assign = treeMaker.Assign(createFieldAccessor(field, clazz), treeMaker.Ident(field));
+
+		// add null check
+		final List<JCStatement> bodyStatements;
+		if (getArgument("rejectNull") == Boolean.TRUE) {
+			bodyStatements = List.<JCStatement>of(generateNullCheck(field), treeMaker.Exec(assign));
+		} else {
+			bodyStatements = List.<JCStatement>of(treeMaker.Exec(assign));
+		}
+
+		return treeMaker.Block(0, bodyStatements);
+	}
+
+	/**
+	 * Generate a null check statement
+	 *
+	 * @param field
+	 * @return
+	 */
+	private JCStatement generateNullCheck(final JCVariableDecl field) {
+		// primitive types can not be null
+		if (isPrimitive(field.vartype)) {
+			addWarning("Primitive variable types can not be null");
+			return null;
+		}
+
+		Name fieldName = field.name;
+		JCExpression npe = chainDots("java", "lang", "IllegalArgumentException");
+		JCNewClass exception = treeMaker.NewClass(null, List.<JCExpression>nil(), npe, List.<JCExpression>of(treeMaker.Literal(fieldName.toString())), null);
+		JCStatement throwStatement = treeMaker.Throw(exception);
+
+		return treeMaker.If(treeMaker.Binary(getCtcInt(JCTree.class, "EQ"), treeMaker.Ident(fieldName), treeMaker.Literal(getCtcInt(TypeTags.class, "BOT"), null)), throwStatement, null);
 	}
 
 	/**
@@ -84,8 +130,8 @@ public class HandlerSetter extends Handler
 		final String setterName = generateSetterName(field);
 
 		for (final JCTree classDef : clazz.defs) {
-			if (classDef instanceof JCTree.JCMethodDecl) {
-				final JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) classDef;
+			if (classDef instanceof JCMethodDecl) {
+				final JCMethodDecl method = (JCMethodDecl) classDef;
 				final String methodName = method.name.toString();
 				if (methodName.equals(setterName)) {
 					return true;

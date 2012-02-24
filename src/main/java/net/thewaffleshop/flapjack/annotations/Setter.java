@@ -28,4 +28,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Setter
 {
+	/**
+	 * Throw an exception if a null value is passed to setter
+	 *
+	 * Throws an IllegalArgumentException with the name of the field as the message
+	 *
+	 * @return
+	 */
+	public boolean rejectNull() default false;
 }

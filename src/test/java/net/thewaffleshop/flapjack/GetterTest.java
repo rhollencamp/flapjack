@@ -27,13 +27,13 @@ import org.junit.Test;
 public class GetterTest
 {
 	@Getter
-	private final String instanceVar = "instance";
+	private String instanceVar;
 
 	@Getter
-	private static final String staticVar = "static";
+	private static String staticVar;
 
 	@Getter
-	private final boolean bool = true;
+	private boolean boolVar;
 
 	/**
 	 * Test instance field getter
@@ -41,7 +41,11 @@ public class GetterTest
 	@Test
 	public void testInstanceGetter()
 	{
+		instanceVar = "instance";
 		Assert.assertEquals("instance", this.getInstanceVar());
+
+		instanceVar = "var";
+		Assert.assertEquals("var", this.getInstanceVar());
 	}
 
 	/**
@@ -50,6 +54,10 @@ public class GetterTest
 	@Test
 	public void testBoolean()
 	{
-		Assert.assertEquals(true, this.isBool());
+		boolVar = true;
+		Assert.assertEquals(true, this.isBoolVar());
+
+		boolVar = false;
+		Assert.assertEquals(false, this.isBoolVar());
 	}
 }

@@ -35,6 +35,9 @@ public class SetterTest
 	@Setter
 	private boolean booleanVar;
 
+	@Setter(rejectNull = true)
+	private String rejectNullVar;
+
 	/**
 	 * Test setter on an instance field
 	 */
@@ -43,6 +46,9 @@ public class SetterTest
 	{
 		this.setInstanceVar("instance");
 		Assert.assertEquals("instance", instanceVar);
+
+		this.setInstanceVar("var");
+		Assert.assertEquals("var", instanceVar);
 	}
 
 	/**
@@ -53,5 +59,25 @@ public class SetterTest
 	{
 		this.setBooleanVar(true);
 		Assert.assertEquals(true, booleanVar);
+
+		this.setBooleanVar(false);
+		Assert.assertEquals(false, booleanVar);
+	}
+
+	/**
+	 * Test reject null will reject null value
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testRejectNullRejects() {
+		setRejectNullVar(null);
+	}
+
+	/**
+	 * Test reject null accepts valid value
+	 */
+	@Test
+	public void testRejectNullAccepts() {
+		setRejectNullVar("not null");
+		Assert.assertEquals("not null", rejectNullVar);
 	}
 }
