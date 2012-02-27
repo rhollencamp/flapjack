@@ -36,4 +36,18 @@ public @interface Setter
 	 * @return
 	 */
 	public boolean rejectNull() default false;
+
+	/**
+	 * Clone parameter to instance field.
+	 *
+	 * Useful for mutable types like Date - avoids having an external reference that can be used
+	 * to change internal state of an object. A clone of the parameter will be saved to the
+	 * instance field. If parameter does not implement {@code Cloneable} then
+	 * {@code CloneNotSupportedException} will be thrown by setter
+	 *
+	 * @todo determine if object type implements Cloneable at compile time
+	 *
+	 * @return
+	 */
+	public boolean useClone() default false;
 }

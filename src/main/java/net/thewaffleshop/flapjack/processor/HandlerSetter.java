@@ -24,6 +24,7 @@ import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -39,15 +40,29 @@ import net.thewaffleshop.flapjack.annotations.Setter;
  */
 public class HandlerSetter extends Handler
 {
+	/**
+	 * Return fully qualified name of annotations we support
+	 *
+	 * This class supports {@link Setter}
+	 *
+	 * @return
+	 */
 	@Override
 	public String getAnnotationClassName()
 	{
 		return Setter.class.getName();
 	}
 
+	/**
+	 * Generate code for Setter
+	 *
+	 * @param field
+	 * @param clazz
+	 */
 	@Override
 	public void handle(final JCVariableDecl field, final JCClassDecl clazz)
 	{
+		// if setter already exists we have nothing to do
 		if (setterExists(field, clazz)) {
 			return;
 		}
@@ -83,18 +98,45 @@ public class HandlerSetter extends Handler
 	 * @return
 	 */
 	private JCBlock generateBody(final JCVariableDecl field, final JCClassDecl clazz) {
-		// method body
-		final JCAssign assign = treeMaker.Assign(createFieldAccessor(field, clazz), treeMaker.Ident(field));
+		final JCExpression rhs =
+				(getArgument("useClone") == Boolean.TRUE)
+				? callClone(field)
+				: treeMaker.Ident(field);
 
-		// add null check
-		final List<JCStatement> bodyStatements;
+		// method body
+		final JCAssign assign = treeMaker.Assign(
+				createFieldAccessor(field, clazz),
+				rhs);
+
+		// generate body statements to assign field value
+		List<JCStatement> bodyStatements = List.<JCStatement>of(treeMaker.Exec(assign));
+
+		// if we want to reject null values, prepend null check
 		if (getArgument("rejectNull") == Boolean.TRUE) {
-			bodyStatements = List.<JCStatement>of(generateNullCheck(field), treeMaker.Exec(assign));
-		} else {
-			bodyStatements = List.<JCStatement>of(treeMaker.Exec(assign));
+			bodyStatements = bodyStatements.prepend(generateNullCheck(field));
 		}
 
 		return treeMaker.Block(0, bodyStatements);
+	}
+
+	/**
+	 * Generate call to parameter's clone method
+	 *
+	 * @param field
+	 * @return
+	 */
+	private JCExpression callClone(final JCVariableDecl field)
+	{
+		// call clone
+		JCMethodInvocation cloneCall = treeMaker.Apply(
+				List.<JCExpression>nil(),
+				treeMaker.Select(
+						treeMaker.Ident(field),
+						elements.getName("clone")),
+				List.<JCExpression>nil());
+
+		// clone returns java.lang.Object; cast to correct type
+		return treeMaker.TypeCast(field.vartype, cloneCall);
 	}
 
 	/**

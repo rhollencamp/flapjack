@@ -9,7 +9,7 @@
 	<packaging>jar</packaging>
 
 	<name>Flapjack</name>
-	<url>https://github.com/rhollencamp/flapjack</url>
+	<url>http://flapjack.thewaffleshop.net</url>
 
 	<build>
 		<plugins>
@@ -58,7 +58,7 @@
 		<dependency>
 			<groupId>sun.jdk</groupId>
 			<artifactId>tools</artifactId>
-			<version>1.6</version>
+			<version>1.6.31</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -77,4 +77,24 @@
 			<comments>A business-friendly OSS license</comments>
 		</license>
 	</licenses>
+
+	<scm>
+		<connection>scm:git:https://github.com/rhollencamp/flapjack.git</connection>
+		<url>https://github.com/rhollencamp/flapjack</url>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/rhollencamp/flapjack/issues</url>
+	</issueManagement>
+
+	<developers>
+		<developer>
+			<id>rhollencamp</id>
+			<name>Robert Hollencamp</name>
+			<email>rhollencamp@gmail.com</email>
+			<url>http://www.thebinaryidiot.com</url>
+			<timezone>America/New_York</timezone>
+		</developer>
+	</developers>
 </project>

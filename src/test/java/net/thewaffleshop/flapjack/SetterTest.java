@@ -15,6 +15,7 @@
  */
 package net.thewaffleshop.flapjack;
 
+import java.util.Date;
 import net.thewaffleshop.flapjack.annotations.Setter;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,6 +38,9 @@ public class SetterTest
 
 	@Setter(rejectNull = true)
 	private String rejectNullVar;
+
+	@Setter(rejectNull = true, useClone = true)
+	private Date cloneVar;
 
 	/**
 	 * Test setter on an instance field
@@ -79,5 +83,18 @@ public class SetterTest
 	public void testRejectNullAccepts() {
 		setRejectNullVar("not null");
 		Assert.assertEquals("not null", rejectNullVar);
+	}
+
+	/**
+	 * Test useage of clone on setter
+	 */
+	@Test
+	public void testClone() {
+		final Date date = new Date();
+		setCloneVar(date);
+
+		Assert.assertNotNull(cloneVar);
+		Assert.assertEquals(date, cloneVar);
+		Assert.assertNotSame(date, cloneVar);
 	}
 }
