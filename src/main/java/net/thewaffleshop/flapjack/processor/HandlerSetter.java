@@ -62,8 +62,10 @@ public class HandlerSetter extends Handler
 	@Override
 	public void handle(final JCVariableDecl field, final JCClassDecl clazz)
 	{
+		final String setterName = generateSetterName(field);
+
 		// if setter already exists we have nothing to do
-		if (setterExists(field, clazz)) {
+		if (methodExists(setterName, clazz)) {
 			return;
 		}
 
@@ -158,30 +160,6 @@ public class HandlerSetter extends Handler
 		JCStatement throwStatement = treeMaker.Throw(exception);
 
 		return treeMaker.If(treeMaker.Binary(getCtcInt(JCTree.class, "EQ"), treeMaker.Ident(fieldName), treeMaker.Literal(getCtcInt(TypeTags.class, "BOT"), null)), throwStatement, null);
-	}
-
-	/**
-	 * Check and see if a setter method already exists for this field
-	 *
-	 * @param field
-	 * @param clazz
-	 * @return
-	 */
-	private boolean setterExists(final JCVariableDecl field, final JCClassDecl clazz)
-	{
-		final String setterName = generateSetterName(field);
-
-		for (final JCTree classDef : clazz.defs) {
-			if (classDef instanceof JCMethodDecl) {
-				final JCMethodDecl method = (JCMethodDecl) classDef;
-				final String methodName = method.name.toString();
-				if (methodName.equals(setterName)) {
-					return true;
-				}
-			}
-		}
-
-		return false;
 	}
 
 	/**

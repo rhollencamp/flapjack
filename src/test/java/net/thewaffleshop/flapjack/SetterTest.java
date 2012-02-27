@@ -93,7 +93,6 @@ public class SetterTest
 		final Date date = new Date();
 		setCloneVar(date);
 
-		Assert.assertNotNull(cloneVar);
 		Assert.assertEquals(date, cloneVar);
 		Assert.assertNotSame(date, cloneVar);
 	}

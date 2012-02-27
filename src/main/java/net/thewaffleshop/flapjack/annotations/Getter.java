@@ -28,4 +28,16 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Getter
 {
+	/**
+	 * Return clone of instance field.
+	 *
+	 * Useful for mutable types like {@code Date} - you do not want to return a reference to a
+	 * mutable type because the state of the object can be modified using said reference. This
+	 * causes a clone of the instance field to be returned from the getter.
+	 *
+	 * @todo determine if object type implements Cloneable at compile time
+	 *
+	 * @return
+	 */
+	public boolean useClone() default false;
 }

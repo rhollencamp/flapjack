@@ -15,6 +15,7 @@
  */
 package net.thewaffleshop.flapjack;
 
+import java.util.Date;
 import junit.framework.Assert;
 import net.thewaffleshop.flapjack.annotations.Getter;
 import org.junit.Test;
@@ -34,6 +35,9 @@ public class GetterTest
 
 	@Getter
 	private boolean boolVar;
+
+	@Getter(useClone = true)
+	private Date cloneTest;
 
 	/**
 	 * Test instance field getter
@@ -59,5 +63,18 @@ public class GetterTest
 
 		boolVar = false;
 		Assert.assertEquals(false, this.isBoolVar());
+	}
+
+	/**
+	 * Test that calling setter with {@code useClone = true} returns a different instance
+	 */
+	@Test
+	public void testClone()
+	{
+		cloneTest = new Date();
+
+		Date ret = getCloneTest();
+		Assert.assertEquals(cloneTest, ret);
+		Assert.assertNotSame(cloneTest, ret);
 	}
 }

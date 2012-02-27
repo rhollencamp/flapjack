@@ -20,9 +20,11 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
@@ -36,7 +38,9 @@ import net.thewaffleshop.flapjack.annotations.Getter;
 public class HandlerGetter extends Handler
 {
 	/**
-	 * Return the class name of the Getter annotation
+	 * Return fully qualified name of annotations we support.
+	 *
+	 * This class supports {@link Getter}
 	 *
 	 * @return
 	 */
@@ -57,12 +61,13 @@ public class HandlerGetter extends Handler
 	@Override
 	public void handle(final JCVariableDecl field, final JCClassDecl clazz)
 	{
-		if (getterExists(field, clazz)) {
+		final String getterName = generateGetterName(field);
+
+		// if getter method already exists, we have nothing to do
+		if (methodExists(getterName, clazz)) {
 			return;
 		}
 
-		final List<JCStatement> bodyStatements = List.<JCStatement>of(treeMaker.Return(createFieldAccessor(field, clazz)));
-		final JCBlock block = treeMaker.Block(0, bodyStatements);
 		final Name methodName = elements.getName(generateGetterName(field));
 		final JCExpression returnType = field.vartype;
 		final JCModifiers modifiers = treeMaker.Modifiers(Flags.PUBLIC);
@@ -73,33 +78,52 @@ public class HandlerGetter extends Handler
 				List.<JCTypeParameter>nil(), // generic parameters
 				List.<JCVariableDecl>nil(),  // parameters
 				List.<JCExpression>nil(),    // throws clauses
-				block,
+				generateBody(field, clazz),
 				null);                       // annotation method default value
 		clazz.defs = clazz.defs.append(methodDef);
 	}
 
 	/**
-	 * Check and see if a getter method already exists for the given field
+	 * Generate body of getter method
 	 *
 	 * @param field
 	 * @param clazz
 	 * @return
 	 */
-	private boolean getterExists(final JCVariableDecl field, final JCClassDecl clazz)
+	private JCBlock generateBody(final JCVariableDecl field, final JCClassDecl clazz)
 	{
-		final String getterName = generateGetterName(field);
+		JCFieldAccess fieldAccess = createFieldAccessor(field, clazz);
 
-		for (final JCTree classDef : clazz.defs) {
-			if (classDef instanceof JCMethodDecl) {
-				final JCMethodDecl method = (JCMethodDecl) classDef;
-				final String methodName = method.name.toString();
-				if (methodName.equals(getterName)) {
-					return true;
-				}
-			}
+		// are we returning a clone or the instance itself?
+		JCExpression retValue;
+		if (getArgument("useClone") == Boolean.TRUE) {
+			retValue = generateCloneStatement(fieldAccess, field);
+		} else {
+			retValue = fieldAccess;
 		}
 
-		return false;
+		return treeMaker.Block(0, List.<JCStatement>of(treeMaker.Return(retValue)));
+	}
+
+	/**
+	 * Generate a clone method call for the given expression
+	 *
+	 * @param var expression to clone result of
+	 * @param field type to cast result to
+	 * @return
+	 */
+	private JCTypeCast generateCloneStatement(final JCExpression var, final JCVariableDecl field)
+	{
+		// call clone
+		JCTree.JCMethodInvocation cloneCall = treeMaker.Apply(
+				List.<JCExpression>nil(),
+				treeMaker.Select(
+						var,
+						elements.getName("clone")),
+				List.<JCExpression>nil());
+
+		// clone returns java.lang.Object; cast to correct type
+		return treeMaker.TypeCast(field.vartype, cloneCall);
 	}
 
 	/**

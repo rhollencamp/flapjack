@@ -19,6 +19,7 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.model.JavacElements;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -124,7 +125,8 @@ public abstract class Handler
 	 *
 	 * @param message
 	 */
-	protected void addWarning(final String message) {
+	protected void addWarning(final String message)
+	{
 		final JavaFileObject oldSource = log.useSource(compilationUnit.sourcefile);
 		log.warning(annotation.pos(), "proc.messager", message);
 		log.useSource(oldSource);
@@ -135,10 +137,34 @@ public abstract class Handler
 	 *
 	 * @param message
 	 */
-	protected void addError(final String message) {
+	protected void addError(final String message)
+	{
 		final JavaFileObject oldSource = log.useSource(compilationUnit.sourcefile);
 		log.error(annotation.pos(), "proc.messager", message);
 		log.useSource(oldSource);
+	}
+
+	/**
+	 * Check if a method exists with the given name
+	 *
+	 * @param needle method name to search for
+	 * @param clazz class to search within
+	 * @return
+	 */
+	protected boolean methodExists(final String needle, final JCClassDecl clazz)
+	{
+		for (final JCTree classDef : clazz.defs) {
+			if (classDef instanceof JCTree.JCMethodDecl) {
+				final JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) classDef;
+				final String methodName = method.name.toString();
+
+				if (methodName.equals(needle)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
